@@ -1,0 +1,19 @@
+# Nirvana 3D — harden uploads: never execute PHP
+Options -Indexes
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<FilesMatch "\.(php|phtml|phar|phps|php5|php7|php8)$">
+  Require all denied
+</FilesMatch>
+<IfModule !mod_authz_core.c>
+  <FilesMatch "\.(php|phtml|phar|phps|php5|php7|php8)$">
+    Deny from all
+  </FilesMatch>
+</IfModule>
+AddType text/plain .php .phtml .phar
+Header set X-Content-Type-Options "nosniff"
+# No script execution, no directory listing

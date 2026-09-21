@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F7F2E7" />
+    <meta name="description" content="گالری و کارگاه چاپ سه‌بعدی نیروانا؛ هنر سه‌بعدی برای دنیای واقعی — اکسسوری، دکور، فیگور و آثار خاص." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta property="og:site_name" content="نیروانا ۳دی | Nirvana 3D" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:title" content="نیروانا ۳دی | Nirvana 3D — گالری هنر سه‌بعدی" />
+    <meta property="og:description" content="گالری و کارگاه چاپ سه‌بعدی نیروانا؛ هنر سه‌بعدی برای دنیای واقعی." />
+    <meta property="og:image" content="/images/hero.jpg" />
+    <meta property="og:url" content="/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="نیروانا ۳دی | Nirvana 3D" />
+    <meta name="twitter:description" content="گالری و کارگاه چاپ سه‌بعدی نیروانا." />
+    <meta name="twitter:image" content="/images/hero.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <title>نیروانا ۳دی | Nirvana 3D — گالری هنر سه‌بعدی</title>
+    <script>
+      (function(){try{var t=localStorage.getItem("nirvana-theme");if(t==='"dark"'||t==="dark"){document.documentElement.classList.add("dark");}}catch(e){}})();
+      /* ── تنظیم production (بدون نیاز به build مجدد) ──────────────
+         روی هاست، مقدار assetBase را "" بگذارید تا تصاویر از
+         public_html/images همان دامنه لود شوند. */
+      window.NIRVANA = {
+        /* Production uses the images shipped with this build. */
+        assetBase: "",
+        apiBase: "/api",
+        /* Never silently place a real production store in local demo mode. */
+        demoFallback: false,
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
