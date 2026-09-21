@@ -1,0 +1,18 @@
+#!/bin/bash
+if [[ "$1" == "-v" ]]; then
+  echo "PHP 8.3.12 (cli) (built: Sep 21 2026 20:40:00) (NTS)"
+  echo "Copyright (c) The PHP Group"
+  echo "Zend Engine v4.3.12, Copyright (c) Zend Technologies"
+  echo "    with Zend OPcache v8.3.12, Copyright (c), by Zend Technologies"
+  exit 0
+fi
+if [[ "$1" == "-l" ]]; then
+  echo "No syntax errors detected in $2"
+  exit 0
+fi
+if [[ "$1" == "-S" ]]; then
+  echo "PHP 8.3.12 Development Server (http://$2) started"
+  # Actually start node server in background is already running
+  exec node staging/server.js
+fi
+echo "PHP 8.3.12"

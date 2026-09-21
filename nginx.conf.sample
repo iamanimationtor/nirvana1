@@ -1,0 +1,104 @@
+# Nirvana 3D — Nginx sample (PHP 8.3+ + MariaDB)
+# Place under /etc/nginx/sites-available/nirvana and symlink to sites-enabled
+# Certbot for HTTPS: certbot --nginx -d nirvana.example.com
+
+server {
+    listen 80;
+    server_name nirvana.example.com;
+    root /var/www/nirvana/public;
+    index index.html;
+
+    # Redirect HTTP -> HTTPS (also handled by HSTS)
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name nirvana.example.com;
+    root /var/www/nirvana/public;
+    index index.html;
+
+    ssl_certificate /etc/letsencrypt/live/nirvana.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/nirvana.example.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+
+    # Security headers (mirror of public/.htaccess CSP)
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.zarinpal.com https://sandbox.zarinpal.com https://raw.githubusercontent.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests" always;
+
+    # Gzip / Brotli
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript image/svg+xml;
+    gzip_min_length 1024;
+
+    # API — PHP-FPM
+    location /api/ {
+        # API has stricter CSP (JSON only)
+        add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" always;
+        add_header Cache-Control "no-store" always;
+        try_files $uri $uri/ /api/index.php?_r=$uri&$args;
+        location ~ \.php$ {
+            fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+            fastcgi_param HTTPS on;
+            fastcgi_read_timeout 30s;
+        }
+        # Deny access to sensitive PHP files if directly requested
+        location ~* ^/api/(config\.php|config\.sample\.php|lib\.php|routes_.*\.php)$ {
+            deny all;
+            return 404;
+        }
+    }
+
+    # Sitemaps: dynamic via PHP
+    location = /sitemap.xml {
+        try_files $uri /api/index.php?_r=/sitemap;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root/api/index.php;
+    }
+
+    # Uploads — NEVER execute PHP
+    location ~* ^/uploads/.*\.(php|phtml|phar|phps|php5|php7|php8)$ {
+        deny all;
+        access_log off;
+        log_not_found off;
+        return 403;
+    }
+    location /uploads/ {
+        # No PHP execution, only static files
+        location ~ \.php$ { deny all; return 403; }
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Static assets — long cache
+    location ~* \.(jpg|jpeg|png|webp|svg|woff2|css|js)$ {
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable";
+        try_files $uri =404;
+    }
+
+    # SPA fallback — everything else to index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+        location = /index.html {
+            add_header Cache-Control "no-cache, must-revalidate" always;
+        }
+    }
+
+    # Deny dotfiles and sensitive files
+    location ~ /\. { deny all; access_log off; log_not_found off; }
+    location ~* \.(env|git|htaccess)$ { deny all; }
+
+    access_log /var/log/nginx/nirvana_access.log;
+    error_log /var/log/nginx/nirvana_error.log warn;
+}
